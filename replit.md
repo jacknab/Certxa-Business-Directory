@@ -1,6 +1,6 @@
-# [Project name]
+# Certxa
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Certxa is a search-first local business directory for discovering trusted independent salons, wellness studios, fitness spaces, and service providers.
 
 ## Run & Operate
 
@@ -22,23 +22,30 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/certxa/src/App.tsx` — route structure, shared shell, interactive discovery pages, and per-route SEO metadata
+- `artifacts/certxa/src/lib/data.ts` — seeded business, city, and category directory content
+- `artifacts/certxa/src/index.css` — Certxa visual language and responsive layout styles
+- `artifacts/certxa/public/robots.txt` and `artifacts/certxa/public/sitemap.xml` — crawlability and public URL discovery
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first release is frontend-first with local seed data so the public discovery and indexable listing surface can be evaluated before adding persistence.
+- Browser-history routes are used for cities, categories, searches, and business profiles so public URLs are descriptive and shareable.
+- SEO metadata and structured data are generated per route; business pages emit LocalBusiness JSON-LD and directory landing pages emit breadcrumb data.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Users can search the directory, filter by city and category, sort results, save places locally, and open detailed business profiles.
+- Public pages cover the home guide, directory search, category landing pages, city guides, and all seeded businesses.
+- Business profiles include services, hours, ratings, contact actions, verification status, and location details.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- The user wants the product branded as Certxa and designed for strong SEO/GEO discoverability.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The static sitemap currently uses `certxa.com`; replace that host with the final published domain before launch if the domain changes.
 
 ## Pointers
 

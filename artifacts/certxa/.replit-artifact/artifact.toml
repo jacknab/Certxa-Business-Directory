@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Certxa"
+description = "A search-first local business directory for discovering trusted salons, wellness studios, fitness spaces, and independent service providers, with indexable category, city, and business pages."
+version = "1.0.0"
+id = "artifacts/certxa"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22151
+
+[services.development]
+run = "pnpm --filter @workspace/certxa run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/certxa", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/certxa/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22151"
+BASE_PATH = "/"
