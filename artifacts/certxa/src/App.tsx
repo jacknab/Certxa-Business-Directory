@@ -62,11 +62,11 @@ function Header() {
     <div className="promo-strip"><span className="promo-badge">certxa+</span><strong>Find your next favorite place, without the guesswork</strong><span className="promo-detail">Explore trusted local businesses near you</span><ArrowRight size={15} /></div>
     <header className="site-header">
       <div className="header-inner">
-        <Link href="/" className="brand" data-testid="link-logo"><span className="brand-mark"><Compass size={17} /></span><span>certxa</span></Link>
+        <Link href="/" className="brand" data-testid="link-logo"><span>certxa.</span></Link>
         <nav className={`main-nav ${open ? 'is-open' : ''}`} aria-label="Main navigation">
           <Link href="/search" className={location === '/search' ? 'active' : ''} data-testid="link-discover">Discover</Link>
           <Link href="/city/denver" className={location.includes('/city') ? 'active' : ''} data-testid="link-cities">Cities</Link>
-          <Link href="/category/wellness" className={location.includes('/category') ? 'active' : ''} data-testid="link-categories">Categories</Link>
+          <Link href="/category/wellness" className={location.includes('/category') ? 'active' : ''} data-testid="link-categories">Professionals</Link>
         </nav>
         <div className="header-actions">
           <a href="mailto:hello@certxa.com" className="business-link" data-testid="link-header-business">For businesses</a>
