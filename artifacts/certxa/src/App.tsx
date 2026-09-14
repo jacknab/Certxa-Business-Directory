@@ -102,7 +102,7 @@ function SearchBar({ initial = '', city = '' }: { initial?: string; city?: strin
   const [, setLocation] = useLocation();
   const submit = (event: FormEvent) => { event.preventDefault(); setLocation(`/search?q=${encodeURIComponent(value)}${where ? `&city=${encodeURIComponent(where)}` : ''}`); };
   return <form className="hero-search" onSubmit={submit} role="search">
-    <div className="search-field search-field-wide"><Search size={20} /><input value={value} onChange={e => setValue(e.target.value)} placeholder="Business name, service, or class" aria-label="What are you looking for?" data-testid="input-search-query" /></div>
+    <div className="search-field search-field-wide"><Search size={20} /><input value={value} onChange={e => setValue(e.target.value)} placeholder="Business name, services, class" aria-label="What are you looking for?" data-testid="input-search-query" /></div>
     <div className="search-divider" />
     <div className="search-field where"><MapPin size={19} /><select value={where} onChange={e => setWhere(e.target.value)} aria-label="Choose a city" data-testid="select-search-city"><option value="">Business or location</option>{cities.map(c => <option key={c.slug} value={c.name}>{c.name}</option>)}</select><ChevronDown size={15} /></div>
     <div className="search-divider" />
