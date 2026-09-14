@@ -2,15 +2,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useEffect, useMemo, useState, type ElementType, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent, type ElementType, type FormEvent, type ReactNode } from 'react';
 import { Link, Route, Switch, useLocation, useParams } from 'wouter';
 import {
-  ArrowRight, Bookmark, BookmarkCheck, Check, ChevronDown, ChevronRight, CircleCheck,
-  BadgeCheck, Briefcase, Clock3, Compass, Dumbbell, ExternalLink, Hand, Leaf, ListFilter, LocateFixed,
-  MapPin, Menu, Phone, Search, Scissors, Send, ShieldCheck, SlidersHorizontal, Sparkles, Star,
-  SunMedium, Waves, X,
+  AlertCircle, ArrowLeft, ArrowRight, Bookmark, BookmarkCheck, Check, ChevronDown, ChevronRight, CircleCheck,
+  BadgeCheck, Briefcase, Clock3, Compass, Dumbbell, ExternalLink, FileImage, Hand, ImagePlus, Leaf, ListFilter, LocateFixed,
+  LockKeyhole, Mail, MapPin, Menu, Phone, Search, Scissors, Send, ShieldCheck, SlidersHorizontal, Sparkles, Star,
+  SunMedium, Upload, UserRound, Waves, X,
 } from 'lucide-react';
-import { businesses, categoryLabels, categoryMeta, cities, professionals, type Business, type Professional } from '@/lib/data';
+import { businesses, categoryLabels, categoryMeta, cities, getSubmittedProfessionals, professionals, saveSubmittedProfessional, type Business, type Professional } from '@/lib/data';
 
 const queryClient = new QueryClient();
 const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -85,7 +85,7 @@ function Footer() {
       <div><Link href="/" className="brand footer-brand" data-testid="link-footer-logo"><span className="brand-mark"><Compass size={17} /></span><span>certxa</span></Link><p className="footer-intro">A more considered way to find your next favorite local place.</p></div>
       <div><p className="footer-label">Explore</p><Link href="/search" data-testid="link-footer-all-places">All places</Link><Link href="/professionals" data-testid="link-footer-professionals">Professionals</Link><Link href="/category/salons" data-testid="link-footer-salons">Salons</Link><Link href="/category/fitness" data-testid="link-footer-fitness">Fitness</Link></div>
       <div><p className="footer-label">Cities</p>{cities.map(city => <Link key={city.slug} href={`/city/${city.slug}`} data-testid={`link-footer-city-${city.slug}`}>{city.name}</Link>)}</div>
-      <div><p className="footer-label">For owners</p><a href="mailto:hello@certxa.com" data-testid="link-list-place">List your place</a><a href="mailto:hello@certxa.com" data-testid="link-editorial-standards">Editorial standards</a></div>
+      <div><p className="footer-label">For owners</p><Link href="/professionals/list" data-testid="link-list-place">List your practice</Link><a href="mailto:hello@certxa.com" data-testid="link-editorial-standards">Editorial standards</a></div>
     </div>
     <div className="footer-bottom"><span>© 2025 Certxa Guide</span><span>Independent places, thoughtfully found.</span></div>
   </footer>;
@@ -252,23 +252,24 @@ function ProfessionalSaveButton({ professional }: { professional: Professional }
 }
 
 function ProfessionalCard({ professional }: { professional: Professional }) {
+  const destination = professional.submitted ? '/professionals' : `/business/${professional.businessSlug}`;
   return <article className="professional-card" data-testid={`card-professional-${professional.id}`}>
     <div className="professional-card-media">
-      <Link href={`/business/${professional.businessSlug}`} data-testid={`link-professional-image-${professional.id}`}><img src={professional.image} alt={`${professional.name}, ${professional.specialty}, in ${professional.city}`} width="720" height="560" loading="lazy" /></Link>
+      <Link href={destination} data-testid={`link-professional-image-${professional.id}`}><img src={professional.image} alt={`${professional.name}, ${professional.specialty}`} width="720" height="560" loading="lazy" /></Link>
       <span className="professional-city" data-testid={`text-professional-city-${professional.id}`}><MapPin size={12} />{professional.city}</span>
       <ProfessionalSaveButton professional={professional} />
     </div>
     <div className="professional-card-body">
       <div className="professional-card-heading">
-        <div><p className="eyebrow">{professional.neighborhood}</p><Link href={`/business/${professional.businessSlug}`} className="professional-name" data-testid={`link-professional-${professional.id}`}>{professional.name}</Link></div>
+        <div><p className="eyebrow">{professional.submitted ? 'Submitted for review' : professional.neighborhood}</p><Link href={destination} className="professional-name" data-testid={`link-professional-${professional.id}`}>{professional.name}</Link></div>
         {professional.verified && <span className="professional-verified" title="Verified on Certxa" data-testid={`status-professional-verified-${professional.id}`}><BadgeCheck size={16} /></span>}
       </div>
       <p className="professional-specialty" data-testid={`text-professional-specialty-${professional.id}`}>{professional.specialty}</p>
-      <ProfessionalRating professional={professional} />
+      {professional.submitted ? <span className="professional-pending"><CircleCheck size={14} />Under editorial review</span> : <ProfessionalRating professional={professional} />}
       <p className="professional-bio">{professional.bio}</p>
       <div className="professional-card-foot"><span className="professional-setup"><Briefcase size={13} /> {professional.setup}</span><span>{professional.price}</span></div>
       <div className="professional-services">{professional.services.slice(0, 2).map(service => <span key={service}>{service}</span>)}</div>
-      <Link href={`/business/${professional.businessSlug}`} className="professional-business-link" data-testid={`link-professional-business-${professional.id}`}>Works from {professional.businessName} <ArrowRight size={14} /></Link>
+      <Link href={destination} className="professional-business-link" data-testid={`link-professional-business-${professional.id}`}>{professional.submitted ? 'View the professional directory' : `Works from ${professional.businessName}`} <ArrowRight size={14} /></Link>
     </div>
   </article>;
 }
@@ -283,6 +284,7 @@ function ProfessionalsPage() {
   const [minimumRating, setMinimumRating] = useState(initialParams.get('rating') || '');
   const [sort, setSort] = useState('recommended');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [submittedProfessionals, setSubmittedProfessionals] = useState<Professional[]>(() => getSubmittedProfessionals());
 
   useEffect(() => {
     const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
@@ -293,11 +295,18 @@ function ProfessionalsPage() {
     setMinimumRating(params.get('rating') || '');
   }, [location]);
 
-  const specialties = useMemo(() => [...new Set(professionals.map(professional => professional.specialty))].sort(), []);
+  useEffect(() => {
+    const refreshSubmitted = () => setSubmittedProfessionals(getSubmittedProfessionals());
+    window.addEventListener('certxa-professional-submitted', refreshSubmitted);
+    return () => window.removeEventListener('certxa-professional-submitted', refreshSubmitted);
+  }, []);
+
+  const allProfessionals = useMemo(() => [...submittedProfessionals, ...professionals], [submittedProfessionals]);
+  const specialties = useMemo(() => [...new Set(allProfessionals.map(professional => professional.specialty))].sort(), [allProfessionals]);
   const filteredProfessionals = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
     const minimum = minimumRating ? Number(minimumRating) : 0;
-    const results = professionals.filter(professional => {
+    const results = allProfessionals.filter(professional => {
       const searchable = [professional.name, professional.specialty, professional.city, professional.neighborhood, professional.businessName, professional.bio, ...professional.services].join(' ').toLowerCase();
       return (!normalizedSearch || searchable.includes(normalizedSearch))
         && (!city || professional.city === city)
@@ -306,7 +315,7 @@ function ProfessionalsPage() {
         && professional.rating >= minimum;
     });
     return [...results].sort((a, b) => sort === 'rating' ? b.rating - a.rating : sort === 'reviews' ? b.reviewCount - a.reviewCount : sort === 'name' ? a.name.localeCompare(b.name) : Number(b.verified) - Number(a.verified) || b.rating - a.rating);
-  }, [city, minimumRating, search, setup, sort, specialty]);
+  }, [allProfessionals, city, minimumRating, search, setup, sort, specialty]);
 
   const updateParam = (key: string, value: string) => {
     const params = new URLSearchParams();
@@ -328,9 +337,9 @@ function ProfessionalsPage() {
     '@type': 'CollectionPage',
     name: 'Certxa Professionals',
     description: 'Discover independent beauty, wellness, and fitness professionals in Denver, Austin, and Portland.',
-    url: `${siteUrl}/professionals`,
-    mainEntity: { '@type': 'ItemList', numberOfItems: professionals.length, itemListElement: professionals.map((professional, index) => ({ '@type': 'ListItem', position: index + 1, name: professional.name, url: `${siteUrl}/business/${professional.businessSlug}` })) },
-  }), []);
+     url: `${siteUrl}/professionals`,
+     mainEntity: { '@type': 'ItemList', numberOfItems: allProfessionals.length, itemListElement: allProfessionals.map((professional, index) => ({ '@type': 'ListItem', position: index + 1, name: professional.name, url: `${siteUrl}/business/${professional.businessSlug}` })) },
+   }), [allProfessionals]);
 
   return <Shell><Seo title="Find independent professionals — Certxa" description="Meet independent beauty, wellness, and fitness professionals in Denver, Austin, and Portland. Search by specialty, setup, rating, and city on Certxa." path="/professionals" jsonLd={schema} />
     <main className="professionals-page">
@@ -339,8 +348,9 @@ function ProfessionalsPage() {
           <p className="kicker"><span className="kicker-line" />The people behind the places</p>
           <h1>Meet your next<br /><em>favorite practitioner.</em></h1>
           <p>Find the solo artists, booth renters, and independent pros who make local beauty, wellness, and movement feel personal.</p>
+          <Link href="/professionals/list" className="button button-dark professional-list-button" data-testid="link-list-professional"><UserRound size={16} /> List your practice <ArrowRight size={15} /></Link>
         </div>
-        <div className="professionals-hero-note"><span className="hero-note-number">08</span><span>people to know<br /><em>and book again</em></span></div>
+        <div className="professionals-hero-note"><span className="hero-note-number">{String(allProfessionals.length).padStart(2, '0')}</span><span>people to know<br /><em>and book again</em></span></div>
       </section>
       <section className="professionals-controls" aria-label="Search professionals">
         <div className="professionals-search-wrap"><Search size={18} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search a name, service, or neighborhood" aria-label="Search professionals" data-testid="input-professionals-search" /><button type="button" onClick={() => setSearch('')} aria-label="Clear professional search" data-testid="button-clear-professional-search"><X size={15} /></button></div>
@@ -360,6 +370,121 @@ function ProfessionalsPage() {
       <section className="professionals-note"><div className="professionals-note-mark"><Briefcase size={18} /><span>Independent by design</span></div><p>Some work from a private studio. Some rent a chair inside a place you already love. Certxa makes room for both — because the person you book matters as much as the place.</p><Link href="/search" className="text-link" data-testid="link-professionals-explore-places">Explore places <ArrowRight size={15} /></Link></section>
     </main>
   </Shell>;
+}
+
+type ListingForm = {
+  name: string;
+  phone: string;
+  email: string;
+  about: string;
+  image: string;
+  imageName: string;
+};
+
+type ListingErrors = Partial<Record<keyof ListingForm, string>>;
+
+const initialListingForm: ListingForm = { name: '', phone: '', email: '', about: '', image: '', imageName: '' };
+const unsafeListingText = /(https?:\/\/|www\.|javascript:|vbscript:|data:text\/html|<[^>]*>|on\w+\s*=|\{\{|\}\}|\$\{|\/\*|--|\b(?:union|select|insert|update|delete|drop)\b.{0,24}\b(?:from|into|table|where|select)\b)/i;
+
+function ProfessionalListingPage() {
+  const [, setLocation] = useLocation();
+  const [form, setForm] = useState<ListingForm>(initialListingForm);
+  const [errors, setErrors] = useState<ListingErrors>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [isReadingImage, setIsReadingImage] = useState(false);
+
+  const updateField = (field: keyof ListingForm, value: string) => {
+    setForm(current => ({ ...current, [field]: value }));
+    setErrors(current => ({ ...current, [field]: undefined }));
+  };
+
+  const handleImage = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setErrors(current => ({ ...current, image: 'Choose a JPG, PNG, or WebP image.' }));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(current => ({ ...current, image: 'Please choose an image smaller than 5 MB.' }));
+      return;
+    }
+    setIsReadingImage(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setForm(current => ({ ...current, image: reader.result as string, imageName: file.name }));
+        setErrors(current => ({ ...current, image: undefined }));
+      }
+      setIsReadingImage(false);
+    };
+    reader.onerror = () => {
+      setErrors(current => ({ ...current, image: 'That image could not be read. Please try another.' }));
+      setIsReadingImage(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const validate = (): ListingErrors => {
+    const next: ListingErrors = {};
+    const name = form.name.trim();
+    const about = form.about.trim();
+    if (!name) next.name = 'Add the name you would like people to find you by.';
+    else if (name.length < 2) next.name = 'Use at least two characters.';
+    else if (unsafeListingText.test(name)) next.name = 'Please use plain text only. Website links and markup are not accepted.';
+    if (!form.phone.trim()) next.phone = 'Add a phone number where a client can reach you.';
+    else if (!/^[+()\d\s./-]{7,24}$/.test(form.phone.trim())) next.phone = 'Enter a valid phone number.';
+    else if (unsafeListingText.test(form.phone)) next.phone = 'Please use plain text only.';
+    if (!form.email.trim()) next.email = 'Add an email address for editorial follow-up.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) next.email = 'Enter a valid email address.';
+    else if (unsafeListingText.test(form.email)) next.email = 'Please use a standard email address.';
+    if (!form.image) next.image = 'Add one clear profile photo.';
+    if (!about) next.about = 'Tell us a little about your practice.';
+    else if (about.length < 40) next.about = 'A little more detail helps us understand your practice (40 characters minimum).';
+    else if (about.length > 700) next.about = 'Keep your introduction under 700 characters.';
+    else if (unsafeListingText.test(about)) next.about = 'Please remove links, markup, or code-like text. Keep it about your practice.';
+    return next;
+  };
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    const nextErrors = validate();
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) {
+      const firstError = Object.keys(nextErrors)[0] as keyof ListingForm;
+      document.getElementById(`listing-${firstError}`)?.focus();
+      return;
+    }
+    saveSubmittedProfessional({ name: form.name, phone: form.phone, email: form.email, image: form.image, bio: form.about });
+    setSubmitted(true);
+  };
+
+  if (submitted) {
+    return <Shell><Seo title="Submitted for review — Certxa" description="Your Certxa professional listing has been submitted for editorial review." path="/professionals/list" /><main className="listing-page"><section className="listing-success" aria-live="polite"><div className="listing-success-icon"><CircleCheck size={34} /></div><p className="kicker"><span className="kicker-line" />Thank you for putting your work forward</p><h1>Your practice is<br /><em>with our editors.</em></h1><p>We have your details and will take a thoughtful look before anything goes live. Your contact information stays private while we review your submission.</p><div className="listing-success-details"><div><LockKeyhole size={17} /><span><strong>Private by default</strong>Only our small editorial team can see your contact details.</span></div><div><BadgeCheck size={17} /><span><strong>Reviewed with care</strong>We check every listing for fit, clarity, and trust.</span></div></div><div className="listing-success-actions"><button type="button" className="button button-dark" onClick={() => setLocation('/professionals')} data-testid="button-view-professionals">Back to professionals <ArrowRight size={16} /></button><button type="button" className="button button-outline" onClick={() => { setForm(initialListingForm); setErrors({}); setSubmitted(false); }} data-testid="button-submit-another">Submit another listing</button></div></section></main></Shell>;
+  }
+
+  return <Shell><Seo title="List your practice — Certxa" description="Put your independent beauty, wellness, or movement practice in front of people who value thoughtful local work." path="/professionals/list" /><main className="listing-page">
+    <div className="listing-wrap">
+      <Link href="/professionals" className="listing-back"><ArrowLeft size={15} /> Back to professionals</Link>
+      <div className="listing-intro"><div><p className="kicker"><span className="kicker-line" />For independent practitioners</p><h1>Make room for<br /><em>your good work.</em></h1><p>Tell us a little about what you do. We will review your submission with the same care we bring to every place in the guide.</p></div><div className="listing-intro-note"><span>01</span><p>Share the work.<br /><em>We’ll handle the rest.</em></p></div></div>
+      <div className="listing-grid">
+        <form className="listing-form" onSubmit={submit} noValidate>
+          <div className="form-section-heading"><span>01</span><div><p className="eyebrow">Your details</p><h2>Start with the basics.</h2></div></div>
+          <div className="listing-field-grid">
+            <div className={`listing-field ${errors.name ? 'has-error' : ''}`}><label htmlFor="listing-name">Professional name <span>Required</span></label><div className="listing-input-wrap"><UserRound size={16} /><input id="listing-name" value={form.name} onChange={event => updateField('name', event.target.value)} placeholder="The name clients know you by" autoComplete="name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'listing-name-error' : undefined} data-testid="input-listing-name" /></div>{errors.name && <p className="listing-error" id="listing-name-error"><AlertCircle size={14} />{errors.name}</p>}</div>
+            <div className={`listing-field ${errors.phone ? 'has-error' : ''}`}><label htmlFor="listing-phone">Phone <span>Private during review</span></label><div className="listing-input-wrap"><Phone size={16} /><input id="listing-phone" type="tel" value={form.phone} onChange={event => updateField('phone', event.target.value)} placeholder="(303) 555-0148" autoComplete="tel" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? 'listing-phone-error' : undefined} data-testid="input-listing-phone" /></div>{errors.phone && <p className="listing-error" id="listing-phone-error"><AlertCircle size={14} />{errors.phone}</p>}</div>
+            <div className={`listing-field ${errors.email ? 'has-error' : ''}`}><label htmlFor="listing-email">Email <span>Private during review</span></label><div className="listing-input-wrap"><Mail size={16} /><input id="listing-email" type="email" value={form.email} onChange={event => updateField('email', event.target.value)} placeholder="hello@yourpractice.com" autoComplete="email" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'listing-email-error' : undefined} data-testid="input-listing-email" /></div>{errors.email && <p className="listing-error" id="listing-email-error"><AlertCircle size={14} />{errors.email}</p>}</div>
+          </div>
+          <div className="form-section-heading form-section-heading-spaced"><span>02</span><div><p className="eyebrow">A first impression</p><h2>Show us the person behind the practice.</h2></div></div>
+          <div className={`listing-field ${errors.image ? 'has-error' : ''}`}><label htmlFor="listing-image">Profile photo <span>JPG, PNG, or WebP · 5 MB max</span></label><div className={`listing-upload ${form.image ? 'has-image' : ''}`}><input id="listing-image" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImage} aria-invalid={Boolean(errors.image)} aria-describedby={errors.image ? 'listing-image-error' : 'listing-image-help'} data-testid="input-listing-image" />{form.image ? <><img src={form.image} alt="Preview of your profile photo" /><div className="listing-upload-overlay"><ImagePlus size={17} /><span>{form.imageName || 'Replace photo'}</span></div></> : <div className="listing-upload-prompt">{isReadingImage ? <FileImage size={25} /> : <Upload size={25} />}<strong>{isReadingImage ? 'Reading your photo…' : 'Choose a profile photo'}</strong><span>One clear, recent image works best.</span></div>}</div>{errors.image && <p className="listing-error" id="listing-image-error"><AlertCircle size={14} />{errors.image}</p>}{!errors.image && <p className="listing-help" id="listing-image-help"><LockKeyhole size={13} />Your photo is stored in this browser for this first release.</p>}</div>
+          <div className={`listing-field ${errors.about ? 'has-error' : ''}`}><label htmlFor="listing-about">About your practice <span>40–700 characters</span></label><textarea id="listing-about" value={form.about} onChange={event => updateField('about', event.target.value)} placeholder="What do you offer, and what can a first-time client expect?" rows={6} maxLength={700} aria-invalid={Boolean(errors.about)} aria-describedby={errors.about ? 'listing-about-error' : 'listing-about-help'} data-testid="input-listing-about" />{errors.about && <p className="listing-error" id="listing-about-error"><AlertCircle size={14} />{errors.about}</p>}{!errors.about && <p className="listing-help" id="listing-about-help"><ShieldCheck size={13} />Please keep it personal and specific. No booking links, website addresses, markup, or code.</p>}<span className="listing-character-count">{form.about.length}/700</span></div>
+          <div className="listing-privacy-callout"><ShieldCheck size={18} /><div><strong>A quiet, careful review.</strong><p>We use your phone and email only to follow up about this listing. They are not published on your profile. We never ask for a password, payment, or a website link here.</p></div></div>
+          <button className="button button-dark listing-submit" type="submit" disabled={isReadingImage} data-testid="button-submit-listing">Send for editorial review <ArrowRight size={16} /></button>
+        </form>
+        <aside className="listing-aside"><div className="listing-aside-card"><p className="eyebrow">What happens next</p><h2>Good work deserves a considered introduction.</h2><ol><li><span>1</span><div><strong>We read your note.</strong><p>A person on our editorial team reviews the details you share.</p></div></li><li><span>2</span><div><strong>We may reach out.</strong><p>We will use your private contact details if we need to clarify anything.</p></div></li><li><span>3</span><div><strong>Your listing finds its place.</strong><p>If it is a fit, your profile will appear alongside other independent professionals.</p></div></li></ol></div><div className="listing-aside-quote"><span>“</span><p>Certxa is for the people whose care is felt in the details.</p><small>— The Certxa editorial promise</small></div></aside>
+      </div>
+    </div>
+  </main></Shell>;
 }
 
 function CategoryPage() {
@@ -396,7 +521,7 @@ function NotFound() {
 
 function Router() {
   const [location] = useLocation();
-  return <ErrorBoundary resetKey={location}><Switch><Route path="/" component={Home} /><Route path="/search" component={SearchPage} /><Route path="/professionals" component={ProfessionalsPage} /><Route path="/category/:category" component={CategoryPage} /><Route path="/city/:city" component={CityPage} /><Route path="/business/:slug" component={BusinessPage} /><Route component={NotFound} /></Switch></ErrorBoundary>;
+  return <ErrorBoundary resetKey={location}><Switch><Route path="/" component={Home} /><Route path="/search" component={SearchPage} /><Route path="/professionals/list" component={ProfessionalListingPage} /><Route path="/professionals" component={ProfessionalsPage} /><Route path="/category/:category" component={CategoryPage} /><Route path="/city/:city" component={CityPage} /><Route path="/business/:slug" component={BusinessPage} /><Route component={NotFound} /></Switch></ErrorBoundary>;
 }
 
 function App() {

@@ -39,6 +39,17 @@ export type Professional = {
   services: string[];
   price: string;
   verified: boolean;
+  submitted?: boolean;
+  phone?: string;
+  email?: string;
+};
+
+export type SubmittedProfessionalInput = {
+  name: string;
+  phone: string;
+  email: string;
+  image: string;
+  bio: string;
 };
 
 export const categoryMeta: Record<string, { label: string; eyebrow: string; copy: string; icon: string }> = {
@@ -199,4 +210,46 @@ export const categoryLabels = Object.fromEntries(Object.entries(categoryMeta).ma
 
 export function titleCase(value: string) {
   return value.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+const submittedProfessionalsKey = 'certxa-submitted-professionals';
+
+export function getSubmittedProfessionals(): Professional[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(submittedProfessionalsKey) || '[]');
+    return Array.isArray(stored) ? stored : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveSubmittedProfessional(input: SubmittedProfessionalInput): Professional {
+  const id = Date.now();
+  const slugBase = input.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'independent-practitioner';
+  const listing: Professional = {
+    id,
+    name: input.name.trim(),
+    slug: `${slugBase}-${id}`,
+    specialty: 'Independent practitioner',
+    city: 'Local community',
+    neighborhood: 'Pending review',
+    rating: 0,
+    reviewCount: 0,
+    setup: 'Independent studio',
+    businessName: 'Certxa community',
+    businessSlug: 'professionals',
+    image: input.image,
+    bio: input.bio.trim(),
+    services: ['Beauty, wellness, or movement'],
+    price: 'Contact for details',
+    verified: false,
+    submitted: true,
+    phone: input.phone.trim(),
+    email: input.email.trim(),
+  };
+  const current = getSubmittedProfessionals();
+  window.localStorage.setItem(submittedProfessionalsKey, JSON.stringify([listing, ...current]));
+  window.dispatchEvent(new CustomEvent('certxa-professional-submitted'));
+  return listing;
 }

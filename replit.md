@@ -30,6 +30,7 @@ Certxa is a search-first local business directory for discovering trusted indepe
 ## Architecture decisions
 
 - The first release is frontend-first with local seed data so the public discovery and indexable listing surface can be evaluated before adding persistence.
+- The first professional self-listing release stores submitted listings in local browser storage; move this to authenticated server persistence, with proper access controls and durable image storage, before production.
 - Browser-history routes are used for cities, categories, searches, and business profiles so public URLs are descriptive and shareable.
 - SEO metadata and structured data are generated per route; business pages emit LocalBusiness JSON-LD and directory landing pages emit breadcrumb data.
 
