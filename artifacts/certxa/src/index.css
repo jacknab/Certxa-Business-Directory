@@ -465,3 +465,134 @@ h2 { font-size: clamp(33px, 4vw, 51px); font-weight: 500; margin-bottom: 0; }
     inset: -1px;
   }
 }
+
+/* Homepage refresh: a high-conversion, image-led discovery surface inspired by marketplace booking sites. */
+.promo-strip {
+  min-height: 38px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  background: linear-gradient(90deg, hsl(247 55% 31%), hsl(261 68% 48%));
+  color: white;
+  font-size: 12px;
+}
+.promo-strip strong { font-weight: 700; }
+.promo-detail { color: hsl(0 0% 100% / .78); }
+.promo-badge { color: white; font-weight: 800; letter-spacing: -.03em; font-size: 13px; }
+.promo-strip svg { opacity: .85; }
+.site-header { height: 70px; position: relative; background: hsl(var(--card)); border-bottom-color: hsl(var(--border)); }
+.header-inner { padding: 0 28px; gap: 30px; }
+.brand { color: hsl(var(--accent)); }
+.brand-mark { background: hsl(var(--accent)); }
+.main-nav { margin-left: auto; margin-right: 0; gap: 25px; }
+.main-nav a { font-size: 12px; }
+.header-actions { display: flex; align-items: center; gap: 18px; }
+.business-link {
+  padding: 10px 17px;
+  border-radius: 3px;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+.business-link:hover { background: hsl(13 55% 48%); color: white; }
+.header-avatar {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: hsl(33 16% 85%);
+  color: hsl(var(--foreground));
+  font-size: 10px;
+  font-weight: 700;
+}
+.home-hero {
+  min-height: 460px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: hsl(195 28% 26%);
+}
+.hero-backdrop, .hero-overlay { position: absolute; inset: 0; }
+.hero-backdrop {
+  z-index: -2;
+  background: url('/images/portland-salon.jpg') center 43% / cover no-repeat;
+  transform: scale(1.02);
+}
+.hero-overlay {
+  z-index: -1;
+  background: linear-gradient(90deg, hsl(193 35% 12% / .84) 0%, hsl(193 35% 12% / .48) 53%, hsl(193 35% 12% / .22) 100%);
+}
+.hero-content {
+  width: min(1180px, calc(100% - 64px));
+  min-height: 460px;
+  margin: auto;
+  padding: 69px 0 42px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.home-hero .kicker { color: hsl(0 0% 100% / .84); }
+.home-hero .kicker-line { background: hsl(0 0% 100% / .78); }
+.home-hero h1 { max-width: 780px; color: white; font-size: clamp(52px, 6.5vw, 82px); margin-bottom: 17px; }
+.home-hero .hero-summary { max-width: 480px; color: hsl(0 0% 100% / .85); margin-bottom: 26px; }
+.hero-search {
+  width: min(100%, 1040px);
+  max-width: none;
+  padding: 6px;
+  border: 0;
+  border-radius: 4px;
+  box-shadow: 0 16px 32px hsl(193 35% 11% / .22);
+}
+.hero-search .search-field { min-width: 0; padding: 11px 13px; }
+.hero-search .search-field-wide { flex: 1.2; }
+.hero-search .search-field.where, .hero-search .search-field.when { flex: .85; }
+.hero-search .when svg:first-child, .hero-search .where svg:first-child { color: hsl(var(--muted-foreground)); }
+.hero-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.hero-pills a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 15px;
+  border: 1px solid hsl(0 0% 100% / .7);
+  border-radius: 999px;
+  color: white;
+  text-decoration: none;
+  font-size: 11px;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.hero-pills a:hover { background: hsl(0 0% 100% / .17); border-color: white; transform: translateY(-1px); }
+
+@media (max-width: 900px) {
+  .promo-strip { justify-content: flex-start; padding-inline: 20px; }
+  .promo-detail { display: none; }
+  .main-nav { margin-left: auto; }
+  .header-actions { gap: 12px; }
+  .business-link { padding-inline: 12px; }
+  .hero-content { width: min(100% - 40px, 760px); }
+}
+@media (max-width: 650px) {
+  .promo-strip { min-height: 34px; padding-inline: 16px; gap: 7px; font-size: 10px; }
+  .promo-strip svg { width: 12px; }
+  .site-header { height: 65px; }
+  .header-inner { padding: 0 16px; gap: 13px; }
+  .main-nav { top: 65px; margin: 0; }
+  .header-actions { margin-left: auto; }
+  .business-link, .header-avatar { display: none; }
+  .saved-link { display: flex; }
+  .hero-content { width: calc(100% - 32px); min-height: 500px; padding: 56px 0 29px; }
+  .home-hero h1 { font-size: clamp(47px, 14vw, 68px); margin-bottom: 15px; }
+  .home-hero .hero-summary { font-size: 14px; line-height: 1.55; margin-bottom: 23px; }
+  .hero-search { display: block; padding: 6px; }
+  .hero-search .search-field { padding: 11px 8px; }
+  .hero-search .search-divider { width: 100%; height: 1px; }
+  .hero-search .search-button { width: 100%; margin-top: 5px; }
+  .hero-pills { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 3px; margin-top: 18px; }
+  .hero-pills a { flex: none; padding: 7px 12px; }
+  .hero-backdrop { background-position: 58% center; }
+  .hero-overlay { background: linear-gradient(90deg, hsl(193 35% 12% / .82), hsl(193 35% 12% / .4)); }
+}

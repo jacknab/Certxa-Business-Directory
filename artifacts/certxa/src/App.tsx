@@ -57,24 +57,26 @@ function Breadcrumbs({ items }: { items: { label: string; href?: string }[] }) {
 
 function Header() {
   const [open, setOpen] = useState(false);
-  const [location, setLocation] = useLocation();
-  const [term, setTerm] = useState('');
-  const submit = (event: FormEvent) => { event.preventDefault(); if (term.trim()) setLocation(`/search?q=${encodeURIComponent(term.trim())}`); };
-  return <header className="site-header">
-    <div className="header-inner">
-      <Link href="/" className="brand" data-testid="link-logo"><span className="brand-mark"><Compass size={17} /></span><span>certxa</span></Link>
-      <nav className={`main-nav ${open ? 'is-open' : ''}`} aria-label="Main navigation">
-        <Link href="/search" className={location === '/search' ? 'active' : ''} data-testid="link-discover">Discover</Link>
-        <Link href="/city/denver" className={location.includes('/city') ? 'active' : ''} data-testid="link-cities">Cities</Link>
-        <Link href="/category/wellness" className={location.includes('/category') ? 'active' : ''} data-testid="link-categories">Categories</Link>
-      </nav>
-      <form className="header-search" onSubmit={submit} role="search">
-        <Search size={16} /><input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Search places..." aria-label="Search places" data-testid="input-header-search" />
-      </form>
-      <Link href="/search?view=saved" className="saved-link" data-testid="link-saved"><Bookmark size={17} /><span className="saved-word">Saved</span></Link>
-      <button className="mobile-menu" onClick={() => setOpen(!open)} aria-label="Toggle navigation" data-testid="button-mobile-menu">{open ? <X size={21} /> : <Menu size={21} />}</button>
-    </div>
-  </header>;
+  const [location] = useLocation();
+  return <>
+    <div className="promo-strip"><span className="promo-badge">certxa+</span><strong>Find your next favorite place, without the guesswork</strong><span className="promo-detail">Explore trusted local businesses near you</span><ArrowRight size={15} /></div>
+    <header className="site-header">
+      <div className="header-inner">
+        <Link href="/" className="brand" data-testid="link-logo"><span className="brand-mark"><Compass size={17} /></span><span>certxa</span></Link>
+        <nav className={`main-nav ${open ? 'is-open' : ''}`} aria-label="Main navigation">
+          <Link href="/search" className={location === '/search' ? 'active' : ''} data-testid="link-discover">Discover</Link>
+          <Link href="/city/denver" className={location.includes('/city') ? 'active' : ''} data-testid="link-cities">Cities</Link>
+          <Link href="/category/wellness" className={location.includes('/category') ? 'active' : ''} data-testid="link-categories">Categories</Link>
+        </nav>
+        <div className="header-actions">
+          <a href="mailto:hello@certxa.com" className="business-link" data-testid="link-header-business">For businesses</a>
+          <Link href="/search?view=saved" className="saved-link" data-testid="link-saved"><Bookmark size={17} /><span className="saved-word">Saved</span></Link>
+          <span className="header-avatar" aria-label="Certxa member">C</span>
+        </div>
+        <button className="mobile-menu" onClick={() => setOpen(!open)} aria-label="Toggle navigation" data-testid="button-mobile-menu">{open ? <X size={21} /> : <Menu size={21} />}</button>
+      </div>
+    </header>
+  </>;
 }
 
 function Footer() {
@@ -96,12 +98,15 @@ function Shell({ children }: { children: ReactNode }) {
 function SearchBar({ initial = '', city = '' }: { initial?: string; city?: string }) {
   const [value, setValue] = useState(initial);
   const [where, setWhere] = useState(city);
+  const [timeframe, setTimeframe] = useState('Anytime');
   const [, setLocation] = useLocation();
   const submit = (event: FormEvent) => { event.preventDefault(); setLocation(`/search?q=${encodeURIComponent(value)}${where ? `&city=${encodeURIComponent(where)}` : ''}`); };
   return <form className="hero-search" onSubmit={submit} role="search">
-    <div className="search-field"><Search size={20} /><input value={value} onChange={e => setValue(e.target.value)} placeholder="Try “facial in RiNo” or “pilates”" aria-label="What are you looking for?" data-testid="input-search-query" /></div>
+    <div className="search-field search-field-wide"><Search size={20} /><input value={value} onChange={e => setValue(e.target.value)} placeholder="Business name, service, or class" aria-label="What are you looking for?" data-testid="input-search-query" /></div>
     <div className="search-divider" />
-    <div className="search-field where"><MapPin size={19} /><select value={where} onChange={e => setWhere(e.target.value)} aria-label="Choose a city" data-testid="select-search-city"><option value="">Everywhere</option>{cities.map(c => <option key={c.slug} value={c.name}>{c.name}</option>)}</select><ChevronDown size={15} /></div>
+    <div className="search-field where"><MapPin size={19} /><select value={where} onChange={e => setWhere(e.target.value)} aria-label="Choose a city" data-testid="select-search-city"><option value="">Business or location</option>{cities.map(c => <option key={c.slug} value={c.name}>{c.name}</option>)}</select><ChevronDown size={15} /></div>
+    <div className="search-divider" />
+    <div className="search-field when"><Clock3 size={18} /><select value={timeframe} onChange={e => setTimeframe(e.target.value)} aria-label="Choose a time" data-testid="select-search-time"><option>Anytime</option><option>Today</option><option>This weekend</option></select><ChevronDown size={15} /></div>
     <button className="button button-dark search-button" type="submit" data-testid="button-search-submit">Search <ArrowRight size={16} /></button>
   </form>;
 }
@@ -140,7 +145,7 @@ function Home() {
   const schema = useMemo(() => [{ '@context': 'https://schema.org', '@type': 'Organization', name: 'Certxa', url: siteUrl, description: 'A trusted local guide to independent salons, wellness studios, and fitness spaces.' }, { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Certxa', url: siteUrl, potentialAction: { '@type': 'SearchAction', target: `${siteUrl}/search?q={search_term_string}`, 'query-input': 'required name=search_term_string' } }], []);
   return <Shell><Seo title="Certxa — Find your next favorite local place" description="Discover independent salons, wellness studios, fitness spaces, and service providers worth your time in Denver, Austin, and Portland." jsonLd={schema} />
     <main>
-      <section className="home-hero"><div className="hero-grid"><div className="hero-copy"><p className="kicker"><span className="kicker-line" />The local guide for good days</p><h1>Find places<br /><em>worth showing up for.</em></h1><p className="hero-summary">Certxa is a considered guide to the independent salons, studios, and practitioners that make a city feel like yours.</p><SearchBar /></div><div className="hero-aside"><div className="hero-note"><span className="note-pin"><MapPin size={15} /></span><div><span className="note-label">Currently exploring</span><strong>Denver · Austin · Portland</strong></div></div><div className="hero-graphic"><div className="graphic-ring ring-one" /><div className="graphic-ring ring-two" /><span className="graphic-cross cross-one">+</span><span className="graphic-cross cross-two">+</span><span className="graphic-caption">Places with<br />a point of view</span></div></div></div></section>
+       <section className="home-hero"><div className="hero-backdrop" aria-hidden="true" /><div className="hero-overlay" aria-hidden="true" /><div className="hero-content"><p className="kicker"><span className="kicker-line" />The local guide for good days</p><h1>Find your next<br /><em>great day.</em></h1><p className="hero-summary">Discover independent salons, studios, and practitioners worth making time for.</p><SearchBar /><div className="hero-pills" aria-label="Browse by service">{Object.entries(categoryMeta).map(([key, meta]) => <Link key={key} href={`/category/${key}`} data-testid={`link-hero-category-${key}`}>{meta.label}</Link>)}<Link href="/search" data-testid="link-hero-more">More <ChevronRight size={13} /></Link></div></div></section>
       <section className="section shell-section category-section"><div className="section-head"><div><p className="eyebrow">Start somewhere good</p><h2>What are you in the mood for?</h2></div><Link href="/search" className="text-link" data-testid="link-browse-all">Browse all places <ArrowRight size={15} /></Link></div><div className="category-grid">{Object.entries(categoryMeta).map(([key, meta]) => <Link href={`/category/${key}`} className="category-tile" key={key} data-testid={`link-category-${key}`}><span className="category-icon"><IconFor name={meta.icon} /></span><span><strong>{meta.label}</strong><small>{placeCount(businesses.filter(b => b.category === key).length)}</small></span><ArrowRight className="tile-arrow" size={16} /></Link>)}</div></section>
       <section className="section featured-section"><div className="section-head"><div><p className="eyebrow">On our radar</p><h2>Places we’d tell a friend about.</h2></div><span className="section-aside">A few especially good finds <span className="accent-dot" /></span></div><div className="featured-grid">{featured.map(b => <BusinessCard key={b.id} business={b} />)}</div></section>
       <section className="city-band"><div className="city-band-inner"><div><p className="eyebrow">The guide, by city</p><h2>Local looks different<br /><em>everywhere.</em></h2><p>Small businesses are the texture of a city. Start with one neighborhood and see where it leads.</p></div><div className="city-list">{cities.map((city, index) => <Link href={`/city/${city.slug}`} key={city.slug} className="city-row" data-testid={`link-city-${city.slug}`}><span className="city-index">0{index + 1}</span><span><strong>{city.name}</strong><small>{city.note}</small></span><ArrowRight size={18} /></Link>)}</div></div></section>
