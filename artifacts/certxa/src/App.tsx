@@ -145,8 +145,8 @@ function Home() {
   const schema = useMemo(() => [{ '@context': 'https://schema.org', '@type': 'Organization', name: 'Certxa', url: siteUrl, description: 'A trusted local guide to independent salons, wellness studios, and fitness spaces.' }, { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Certxa', url: siteUrl, potentialAction: { '@type': 'SearchAction', target: `${siteUrl}/search?q={search_term_string}`, 'query-input': 'required name=search_term_string' } }], []);
   return <Shell><Seo title="Certxa — Find your next favorite local place" description="Discover independent salons, wellness studios, fitness spaces, and service providers worth your time in Denver, Austin, and Portland." jsonLd={schema} />
     <main>
-       <section className="home-hero"><div className="hero-backdrop" aria-hidden="true" /><div className="hero-overlay" aria-hidden="true" /><div className="hero-content"><p className="kicker"><span className="kicker-line" />The local guide for good days</p><h1>Find your next<br /><em>great day.</em></h1><p className="hero-summary">Discover independent salons, studios, and practitioners worth making time for.</p><SearchBar /><div className="hero-pills" aria-label="Browse by service">{Object.entries(categoryMeta).map(([key, meta]) => <Link key={key} href={`/category/${key}`} data-testid={`link-hero-category-${key}`}>{meta.label}</Link>)}<Link href="/search" data-testid="link-hero-more">More <ChevronRight size={13} /></Link></div></div></section>
-      <section className="section shell-section category-section"><div className="section-head"><div><p className="eyebrow">Start somewhere good</p><h2>What are you in the mood for?</h2></div><Link href="/search" className="text-link" data-testid="link-browse-all">Browse all places <ArrowRight size={15} /></Link></div><div className="category-grid">{Object.entries(categoryMeta).map(([key, meta]) => <Link href={`/category/${key}`} className="category-tile" key={key} data-testid={`link-category-${key}`}><span className="category-icon"><IconFor name={meta.icon} /></span><span><strong>{meta.label}</strong><small>{placeCount(businesses.filter(b => b.category === key).length)}</small></span><ArrowRight className="tile-arrow" size={16} /></Link>)}</div></section>
+       <section className="home-hero"><div className="hero-backdrop" aria-hidden="true" /><div className="hero-overlay" aria-hidden="true" /><div className="hero-content"><p className="kicker"><span className="kicker-line" />The local guide for good days</p><h1>Find your next<br /><em>great day.</em></h1><p className="hero-summary">Discover independent salons, studios, and practitioners worth making time for.</p><SearchBar /><div className="hero-pills" aria-label="Browse by service">{Object.entries(categoryMeta).map(([key, meta]) => <Link key={key} href={`/search?category=${key}`} data-testid={`link-hero-category-${key}`}>{meta.label}</Link>)}<Link href="/search" data-testid="link-hero-more">More <ChevronRight size={13} /></Link></div></div></section>
+       <section className="section shell-section category-section"><div className="section-head"><div><p className="eyebrow">Start somewhere good</p><h2>What are you in the mood for?</h2></div><Link href="/search" className="text-link" data-testid="link-browse-all">Browse all places <ArrowRight size={15} /></Link></div><div className="category-grid">{Object.entries(categoryMeta).map(([key, meta]) => <Link href={`/search?category=${key}`} className="category-tile" key={key} data-testid={`link-category-${key}`}><span className="category-icon"><IconFor name={meta.icon} /></span><span><strong>{meta.label}</strong><small>{placeCount(businesses.filter(b => b.category === key).length)}</small></span><ArrowRight className="tile-arrow" size={16} /></Link>)}</div></section>
       <section className="section featured-section"><div className="section-head"><div><p className="eyebrow">On our radar</p><h2>Places we’d tell a friend about.</h2></div><span className="section-aside">A few especially good finds <span className="accent-dot" /></span></div><div className="featured-grid">{featured.map(b => <BusinessCard key={b.id} business={b} />)}</div></section>
       <section className="city-band"><div className="city-band-inner"><div><p className="eyebrow">The guide, by city</p><h2>Local looks different<br /><em>everywhere.</em></h2><p>Small businesses are the texture of a city. Start with one neighborhood and see where it leads.</p></div><div className="city-list">{cities.map((city, index) => <Link href={`/city/${city.slug}`} key={city.slug} className="city-row" data-testid={`link-city-${city.slug}`}><span className="city-index">0{index + 1}</span><span><strong>{city.name}</strong><small>{city.note}</small></span><ArrowRight size={18} /></Link>)}</div></div></section>
       <section className="section journal-section"><div className="journal-mark">A note from<br /><em>the guide</em></div><div className="journal-copy"><p className="eyebrow">Why Certxa exists</p><h2>The best local places<br />usually have a story.</h2><p>Not every place needs to be the loudest, newest, or most booked. We look for the ones with care in the details: the practitioner who remembers your name, the room that lets you exhale, the owner who has stayed curious.</p><Link href="/search" className="button button-outline" data-testid="button-read-guide">Explore the guide <ArrowRight size={16} /></Link></div><div className="journal-stat"><strong>12</strong><span>independent places<br />to start with</span></div></section>
@@ -156,9 +156,24 @@ function Home() {
 
 function FilterPill({ label, active, onClick }: { label: string; active?: boolean; onClick: () => void }) { return <button className={`filter-pill ${active ? 'active' : ''}`} onClick={onClick} data-testid={`button-filter-${label.toLowerCase().replaceAll(' ', '-')}`}>{label}{active && <X size={13} />}</button>; }
 
+function DirectoryResultCard({ business, index }: { business: Business; index: number }) {
+  const distance = ['0.8 mi', '1.4 mi', '2.1 mi', '2.7 mi'][index % 4];
+  return <article className="directory-result-card" data-testid={`directory-result-${business.id}`}>
+    <Link href={`/business/${business.slug}`} className="directory-result-image" data-testid={`directory-result-image-${business.id}`}><img src={business.image} alt={`${business.name} in ${business.city}`} width="160" height="120" loading="lazy" /></Link>
+    <div className="directory-result-content">
+      <div className="directory-result-heading"><Link href={`/business/${business.slug}`} className="directory-result-title" data-testid={`directory-result-link-${business.id}`}>{business.name}</Link><SaveButton business={business} /></div>
+      <Rating business={business} />
+      <p className="directory-result-location">{business.city}, CO <span>·</span> {distance}</p>
+      <p className="directory-result-services">{categoryLabels[business.category]} · {business.tags.slice(0, 2).join(' · ')}</p>
+      <p className="directory-result-description">{business.description}</p>
+      <div className="directory-result-footer"><span className="directory-open-status">{index % 3 === 1 ? 'Closed now' : 'Open today'}</span><span>{business.priceTier} · {business.verified ? 'Verified' : 'Independent'}</span></div>
+    </div>
+  </article>;
+}
+
 function SearchPage() {
   const [location] = useLocation();
-  const query = new URLSearchParams(location.split('?')[1] || '');
+  const query = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
   const initialQ = query.get('q') || '';
   const initialCity = query.get('city') || '';
   const [q, setQ] = useState(initialQ);
@@ -166,16 +181,57 @@ function SearchPage() {
   const [category, setCategory] = useState(query.get('category') || '');
   const [sort, setSort] = useState('recommended');
   const [savedOnly, setSavedOnly] = useState(query.get('view') === 'saved');
+  const [locationText, setLocationText] = useState(initialCity);
+  const [showFilters, setShowFilters] = useState(false);
+  const [, setLocation] = useLocation();
+  useEffect(() => {
+    const next = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    setQ(next.get('q') || '');
+    setCity(next.get('city') || '');
+    setCategory(next.get('category') || '');
+    setSavedOnly(next.get('view') === 'saved');
+    setLocationText(next.get('city') || '');
+  }, [location]);
   const filtered = useMemo(() => {
     const saved: number[] = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('certxa-saved') || '[]') : [];
-    const results = businesses.filter(b => (!q || `${b.name} ${b.category} ${b.neighborhood} ${b.tags.join(' ')}`.toLowerCase().includes(q.toLowerCase())) && (!city || b.city.toLowerCase() === city.toLowerCase()) && (!category || b.category === category) && (!savedOnly || saved.includes(b.id)));
+    const results = businesses.filter(b => (!q || `${b.name} ${categoryLabels[b.category]} ${b.category} ${b.neighborhood} ${b.city} ${b.tags.join(' ')}`.toLowerCase().includes(q.toLowerCase())) && (!city || b.city.toLowerCase() === city.toLowerCase()) && (!category || b.category === category) && (!savedOnly || saved.includes(b.id)));
     return [...results].sort((a, b) => sort === 'rating' ? b.rating - a.rating : sort === 'reviews' ? b.reviewCount - a.reviewCount : Number(b.featured) - Number(a.featured));
   }, [q, city, category, sort, savedOnly]);
-  const clear = () => { setQ(''); setCity(''); setCategory(''); setSavedOnly(false); };
-  return <Shell><Seo title={`${q || 'Discover local places'} — Certxa`} description={`Browse trusted independent ${q ? `${q} ` : ''}places in Denver, Austin, and Portland. Compare ratings, services, and local details on Certxa.`} path={`/search${location.includes('?') ? `?${location.split('?')[1]}` : ''}`} />
-    <main className="directory-page"><div className="directory-top"><Breadcrumbs items={[{ label: 'Discover' }]} /><p className="eyebrow">The Certxa directory</p><h1>Find your next<br /><em>good place.</em></h1><p className="directory-dek">Search the independent places we’d happily send a friend to.</p><form className="directory-search" onSubmit={e => e.preventDefault()}><Search size={18} /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name, service, or neighborhood" aria-label="Search directory" data-testid="input-directory-search" /><button type="submit" data-testid="button-directory-search">Search</button></form></div>
-      <div className="directory-layout"><aside className="filter-sidebar"><div className="filter-header"><strong>Refine your search</strong><ListFilter size={17} /></div><div className="filter-group"><label>City</label>{cities.map(c => <button key={c.slug} className={`filter-option ${city === c.name ? 'selected' : ''}`} onClick={() => setCity(city === c.name ? '' : c.name)} data-testid={`button-city-filter-${c.slug}`}><span className="check-box">{city === c.name && <Check size={12} />}</span>{c.name}<small>{c.count}</small></button>)}</div><div className="filter-group"><label>Category</label>{Object.entries(categoryLabels).map(([key, label]) => <button key={key} className={`filter-option ${category === key ? 'selected' : ''}`} onClick={() => setCategory(category === key ? '' : key)} data-testid={`button-category-filter-${key}`}><span className="check-box">{category === key && <Check size={12} />}</span>{label}<small>{businesses.filter(b => b.category === key).length}</small></button>)}</div><button className={`saved-toggle ${savedOnly ? 'selected' : ''}`} onClick={() => setSavedOnly(!savedOnly)} data-testid="button-show-saved"><Bookmark size={16} /> Show saved places</button>{(q || city || category || savedOnly) && <button className="clear-filters" onClick={clear} data-testid="button-clear-filters">Clear all filters</button>}</aside>
-        <section className="results-section"><div className="results-toolbar"><div><p className="result-count">{filtered.length} {filtered.length === 1 ? 'place' : 'places'} found</p><div className="active-filters">{q && <FilterPill label={`“${q}”`} active onClick={() => setQ('')} />}{city && <FilterPill label={city} active onClick={() => setCity('')} />}{category && <FilterPill label={categoryLabels[category]} active onClick={() => setCategory('')} />}</div></div><label className="sort-select">Sort by <select value={sort} onChange={e => setSort(e.target.value)} aria-label="Sort results" data-testid="select-sort-results"><option value="recommended">Recommended</option><option value="rating">Highest rated</option><option value="reviews">Most reviewed</option></select><ChevronDown size={14} /></label></div>{filtered.length ? <div className="results-grid">{filtered.map(b => <BusinessCard key={b.id} business={b} />)}</div> : <div className="empty-state"><div className="empty-icon"><Compass size={24} /></div><h2>No places match that yet.</h2><p>Try a broader search or clear a filter. There are good places out there.</p><button className="button button-outline" onClick={clear} data-testid="button-empty-clear">Clear search</button></div>}</section></div>
+  const clear = () => { setQ(''); setCity(''); setCategory(''); setSavedOnly(false); setLocationText(''); setLocation('/search'); };
+  const submitSearch = (event: FormEvent) => {
+    event.preventDefault();
+    const params = new URLSearchParams();
+    if (q.trim()) params.set('q', q.trim());
+    if (city) params.set('city', city);
+    if (category) params.set('category', category);
+    if (savedOnly) params.set('view', 'saved');
+    setLocation(`/search${params.toString() ? `?${params.toString()}` : ''}`);
+  };
+  const submitLocation = (event: FormEvent) => {
+    event.preventDefault();
+    const matchingCity = cities.find(item => item.name.toLowerCase() === locationText.trim().toLowerCase());
+    setCity(matchingCity?.name || '');
+    setLocationText(matchingCity?.name || locationText.trim());
+  };
+  const title = category ? `Best ${categoryLabels[category]} near you` : q ? `Results for “${q}”` : 'Discover local businesses';
+  const locationLabel = city || 'Denver, CO';
+  return <Shell><Seo title={`${title} — Certxa`} description={`Browse trusted independent ${q ? `${q} ` : ''}places in Denver, Austin, and Portland. Compare ratings, services, and local details on Certxa.`} path={`/search${typeof window !== 'undefined' && window.location.search ? window.location.search : ''}`} />
+    <main className="directory-page">
+      <div className="directory-topbar">
+        <form className="directory-location-form" onSubmit={submitLocation}><Search size={17} /><input value={locationText} onChange={e => setLocationText(e.target.value)} placeholder="City, Zip / Postal code" aria-label="Search by location" data-testid="input-directory-location" /></form>
+        <div className="directory-mode-tabs" role="tablist" aria-label="Directory mode"><button className="active" type="button" data-testid="button-at-business"><span>▰</span> At Business</button><button type="button" data-testid="button-mobile-services">▣ Mobile Services</button><button type="button" data-testid="button-live-stream">▮ Live Stream</button></div>
+        <form className="directory-service-form" onSubmit={submitSearch}><Search size={17} /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Search Services and Classes" aria-label="Search services and classes" data-testid="input-directory-search" /></form>
+        <button className={`directory-filter-button ${showFilters ? 'active' : ''}`} type="button" onClick={() => setShowFilters(!showFilters)} data-testid="button-directory-filters"><ListFilter size={16} /> Filters</button>
+        {category && <button className="directory-active-chip" type="button" onClick={() => { setCategory(''); submitSearch(new Event('submit') as unknown as FormEvent); }} data-testid="button-directory-category">{categoryLabels[category]} <X size={14} /></button>}
+      </div>
+      {showFilters && <div className="directory-filter-drawer"><div><span>City</span>{cities.map(item => <button key={item.slug} className={city === item.name ? 'selected' : ''} onClick={() => setCity(city === item.name ? '' : item.name)}>{item.name} <small>{item.count}</small></button>)}</div><div><span>Business type</span>{Object.entries(categoryLabels).map(([key, label]) => <button key={key} className={category === key ? 'selected' : ''} onClick={() => setCategory(category === key ? '' : key)}>{label} <small>{businesses.filter(b => b.category === key).length}</small></button>)}</div><button className={`directory-saved-filter ${savedOnly ? 'selected' : ''}`} onClick={() => setSavedOnly(!savedOnly)}><Bookmark size={15} /> Saved places</button></div>}
+      <div className="directory-results-layout">
+        <section className="directory-list-panel" aria-label="Business results">
+          <div className="directory-list-header"><div><h1>{title}</h1><p>{filtered.length} Businesses Available in <button type="button" onClick={() => setLocationText(locationLabel)}>{locationLabel}</button></p></div><label className="directory-sort">Sort <select value={sort} onChange={e => setSort(e.target.value)} aria-label="Sort results" data-testid="select-sort-results"><option value="recommended">Recommended</option><option value="rating">Rating</option><option value="reviews">Reviews</option></select><ChevronDown size={13} /></label></div>
+          <div className="directory-list">{filtered.length ? filtered.map((business, index) => <DirectoryResultCard key={business.id} business={business} index={index} />) : <div className="directory-empty"><Compass size={25} /><h2>No places match that yet.</h2><p>Try a broader search or clear a filter.</p><button className="button button-outline" onClick={clear} data-testid="button-empty-clear">Clear search</button></div>}</div>
+        </section>
+        <aside className="directory-map" aria-label="Map of business results"><div className="map-water" /><div className="map-road road-one" /><div className="map-road road-two" /><div className="map-road road-three" /><div className="map-road road-four" /><span className="map-neighborhood n-one">HIGHLAND</span><span className="map-neighborhood n-two">FIVE POINTS</span><span className="map-neighborhood n-three">CAPITOL HILL</span><span className="map-neighborhood n-four">CHERRY CREEK</span><span className="map-neighborhood n-five">WASHINGTON PARK</span>{filtered.map((business, index) => <Link key={business.id} href={`/business/${business.slug}`} className="map-marker" style={{ left: `${14 + ((index * 17) % 73)}%`, top: `${17 + ((index * 23) % 66)}%` }} aria-label={`View ${business.name}`} data-testid={`map-marker-${business.id}`}><MapPin size={29} fill="currentColor" /></Link>)}<div className="map-label">Map data <span>© Certxa</span></div><button className="map-expand" type="button" aria-label="Expand map"><LocateFixed size={18} /></button></aside>
+      </div>
     </main>
   </Shell>;
 }
