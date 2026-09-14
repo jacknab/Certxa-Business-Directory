@@ -22,6 +22,25 @@ export type Business = {
   coordinates: { lat: number; lng: number };
 };
 
+export type Professional = {
+  id: number;
+  name: string;
+  slug: string;
+  specialty: string;
+  city: string;
+  neighborhood: string;
+  rating: number;
+  reviewCount: number;
+  setup: 'Independent studio' | 'Booth renter' | 'Suite inside salon';
+  businessName: string;
+  businessSlug: string;
+  image: string;
+  bio: string;
+  services: string[];
+  price: string;
+  verified: boolean;
+};
+
 export const categoryMeta: Record<string, { label: string; eyebrow: string; copy: string; icon: string }> = {
   salons: { label: 'Salons', eyebrow: 'Hair, considered', copy: 'Independent hair studios with a point of view, a calm chair, and work worth coming back to.', icon: 'Scissors' },
   barbers: { label: 'Barbers', eyebrow: 'A better cut', copy: 'The neighborhood barbers who know your shape, your style, and the difference between the two.', icon: 'Sparkles' },
@@ -116,6 +135,57 @@ export const businesses: Business[] = [
     tagline: 'Loud music, kind coaching.', description: 'A bright, beat-led cycling room where first timers and regulars get the same warm welcome.',
     image: '/images/austin-movement.jpg', tags: ['Cycling', 'Beginner-friendly', 'Early classes'], services: ['45-minute ride', 'Express ride', 'Intro pack'],
     hours: ['Mon–Sun 6:00 AM–8:00 PM'], phone: '(512) 555-0168', website: 'https://risecycle.example.com', verified: false, featured: false, coordinates: { lat: 30.2796, lng: -97.7632 },
+  },
+];
+
+export const professionals: Professional[] = [
+  {
+    id: 101, name: 'Mara Ellis', slug: 'mara-ellis', specialty: 'Lived-in color', city: 'Denver', neighborhood: 'Highland',
+    rating: 4.9, reviewCount: 47, setup: 'Booth renter', businessName: 'Lumen Hair', businessSlug: 'lumen-hair-denver',
+    image: '/images/portland-salon.jpg', bio: 'Soft dimension, thoughtful consultations, and color that grows out as beautifully as it starts.',
+    services: ['Dimensional color', 'Gloss + shape', 'Color correction'], price: '$$', verified: true,
+  },
+  {
+    id: 102, name: 'Jules Okafor', slug: 'jules-okafor', specialty: 'Strength & mobility', city: 'Austin', neighborhood: 'East Austin',
+    rating: 4.8, reviewCount: 62, setup: 'Independent studio', businessName: 'Common Ground Movement', businessSlug: 'common-ground-movement-austin',
+    image: '/images/austin-movement.jpg', bio: 'A patient, practical coach for building strength that follows you into real life.',
+    services: ['1:1 movement session', 'Strength foundations', 'Mobility reset'], price: '$$$', verified: true,
+  },
+  {
+    id: 103, name: 'Anika Shah', slug: 'anika-shah', specialty: 'Facials & barrier care', city: 'Austin', neighborhood: 'South Congress',
+    rating: 4.7, reviewCount: 39, setup: 'Suite inside salon', businessName: 'Morrow Skin', businessSlug: 'morrow-skin-austin',
+    image: '/images/denver-studio.jpg', bio: 'Skin-first treatments for sensitive, changing skin, with a plan you can actually keep.',
+    services: ['Barrier reset', 'The Morrow facial', 'Skin consultation'], price: '$$$', verified: true,
+  },
+  {
+    id: 104, name: 'Tessa Nguyen', slug: 'tessa-nguyen', specialty: 'Natural nails', city: 'Austin', neighborhood: 'Bouldin',
+    rating: 4.9, reviewCount: 33, setup: 'Independent studio', businessName: 'Tender Form Nails', businessSlug: 'tender-form-nails-austin',
+    image: '/images/portland-salon.jpg', bio: 'Clean shaping and tiny details for people who want their hands to feel like themselves.',
+    services: ['Signature manicure', 'Builder gel', 'Custom detail set'], price: '$$', verified: true,
+  },
+  {
+    id: 105, name: 'Rae Bell', slug: 'rae-bell', specialty: 'Therapeutic massage', city: 'Denver', neighborhood: 'Baker',
+    rating: 4.9, reviewCount: 51, setup: 'Independent studio', businessName: 'Slow Burn Massage', businessSlug: 'slow-burn-massage-denver',
+    image: '/images/denver-studio.jpg', bio: 'Focused bodywork for busy bodies, with enough quiet to notice what your shoulders are saying.',
+    services: ['Deep tissue', 'Prenatal massage', 'Therapeutic massage'], price: '$$$', verified: false,
+  },
+  {
+    id: 106, name: 'Noah Mercer', slug: 'noah-mercer', specialty: 'Classic barbering', city: 'Portland', neighborhood: 'Mississippi',
+    rating: 4.8, reviewCount: 28, setup: 'Booth renter', businessName: 'Northline Barber', businessSlug: 'northline-barber-portland',
+    image: '/images/austin-movement.jpg', bio: 'Classic cuts, modern texture, and the kind of chair where the conversation can stay easy.',
+    services: ['Scissor cut', 'Skin fade', 'Beard shape'], price: '$$', verified: true,
+  },
+  {
+    id: 107, name: 'Sloane Reed', slug: 'sloane-reed', specialty: 'Restorative skincare', city: 'Portland', neighborhood: 'Sellwood',
+    rating: 4.9, reviewCount: 42, setup: 'Suite inside salon', businessName: 'Sunroom Skincare', businessSlug: 'sunroom-skincare-portland',
+    image: '/images/denver-studio.jpg', bio: 'Slow facials and practical routines for skin that wants less noise and more consistency.',
+    services: ['Sunroom signature', 'Gentle peel', 'Skin mapping'], price: '$$$', verified: true,
+  },
+  {
+    id: 108, name: 'Priya Hart', slug: 'priya-hart', specialty: 'Cycling & conditioning', city: 'Austin', neighborhood: 'Clarksville',
+    rating: 4.6, reviewCount: 24, setup: 'Booth renter', businessName: 'Rise Cycle', businessSlug: 'rise-cycle-austin',
+    image: '/images/austin-movement.jpg', bio: 'Bright energy, clear coaching, and a first class that never makes you feel like the new person.',
+    services: ['45-minute ride', 'Express ride', 'Intro pack'], price: '$$', verified: false,
   },
 ];
 

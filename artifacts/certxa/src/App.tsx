@@ -6,11 +6,11 @@ import { useEffect, useMemo, useState, type ElementType, type FormEvent, type Re
 import { Link, Route, Switch, useLocation, useParams } from 'wouter';
 import {
   ArrowRight, Bookmark, BookmarkCheck, Check, ChevronDown, ChevronRight, CircleCheck,
-  Clock3, Compass, Dumbbell, ExternalLink, Hand, Leaf, ListFilter, LocateFixed,
-  MapPin, Menu, Phone, Search, Scissors, Send, ShieldCheck, Sparkles, Star,
+  BadgeCheck, Briefcase, Clock3, Compass, Dumbbell, ExternalLink, Hand, Leaf, ListFilter, LocateFixed,
+  MapPin, Menu, Phone, Search, Scissors, Send, ShieldCheck, SlidersHorizontal, Sparkles, Star,
   SunMedium, Waves, X,
 } from 'lucide-react';
-import { businesses, categoryLabels, categoryMeta, cities, type Business } from '@/lib/data';
+import { businesses, categoryLabels, categoryMeta, cities, professionals, type Business, type Professional } from '@/lib/data';
 
 const queryClient = new QueryClient();
 const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -66,7 +66,7 @@ function Header() {
         <nav className={`main-nav ${open ? 'is-open' : ''}`} aria-label="Main navigation">
           <Link href="/search" className={location === '/search' ? 'active' : ''} data-testid="link-discover">Discover</Link>
           <Link href="/city/denver" className={location.includes('/city') ? 'active' : ''} data-testid="link-cities">Cities</Link>
-          <Link href="/category/wellness" className={location.includes('/category') ? 'active' : ''} data-testid="link-categories">Professionals</Link>
+          <Link href="/professionals" className={location === '/professionals' ? 'active' : ''} data-testid="link-professionals">Professionals</Link>
         </nav>
         <div className="header-actions">
           <a href="mailto:hello@certxa.com" className="business-link" data-testid="link-header-business">For businesses</a>
@@ -83,7 +83,7 @@ function Footer() {
   return <footer className="site-footer">
     <div className="footer-grid">
       <div><Link href="/" className="brand footer-brand" data-testid="link-footer-logo"><span className="brand-mark"><Compass size={17} /></span><span>certxa</span></Link><p className="footer-intro">A more considered way to find your next favorite local place.</p></div>
-      <div><p className="footer-label">Explore</p><Link href="/search" data-testid="link-footer-all-places">All places</Link><Link href="/category/salons" data-testid="link-footer-salons">Salons</Link><Link href="/category/fitness" data-testid="link-footer-fitness">Fitness</Link></div>
+      <div><p className="footer-label">Explore</p><Link href="/search" data-testid="link-footer-all-places">All places</Link><Link href="/professionals" data-testid="link-footer-professionals">Professionals</Link><Link href="/category/salons" data-testid="link-footer-salons">Salons</Link><Link href="/category/fitness" data-testid="link-footer-fitness">Fitness</Link></div>
       <div><p className="footer-label">Cities</p>{cities.map(city => <Link key={city.slug} href={`/city/${city.slug}`} data-testid={`link-footer-city-${city.slug}`}>{city.name}</Link>)}</div>
       <div><p className="footer-label">For owners</p><a href="mailto:hello@certxa.com" data-testid="link-list-place">List your place</a><a href="mailto:hello@certxa.com" data-testid="link-editorial-standards">Editorial standards</a></div>
     </div>
@@ -236,6 +236,132 @@ function SearchPage() {
   </Shell>;
 }
 
+function ProfessionalRating({ professional }: { professional: Professional }) {
+  return <span className="professional-rating" data-testid={`rating-professional-${professional.id}`}><Star size={14} fill="currentColor" /><strong>{professional.rating.toFixed(1)}</strong><span>({professional.reviewCount})</span></span>;
+}
+
+function ProfessionalSaveButton({ professional }: { professional: Professional }) {
+  const [saved, setSaved] = useState(() => typeof window !== 'undefined' && JSON.parse(localStorage.getItem('certxa-saved-professionals') || '[]').includes(professional.id));
+  const toggle = () => {
+    const current: number[] = JSON.parse(localStorage.getItem('certxa-saved-professionals') || '[]');
+    const next = saved ? current.filter(id => id !== professional.id) : [...current, professional.id];
+    localStorage.setItem('certxa-saved-professionals', JSON.stringify(next));
+    setSaved(!saved);
+  };
+  return <button className={`professional-save ${saved ? 'saved' : ''}`} type="button" onClick={toggle} aria-label={saved ? `Remove ${professional.name} from saved` : `Save ${professional.name}`} data-testid={`button-save-professional-${professional.id}`}>{saved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}</button>;
+}
+
+function ProfessionalCard({ professional }: { professional: Professional }) {
+  return <article className="professional-card" data-testid={`card-professional-${professional.id}`}>
+    <div className="professional-card-media">
+      <Link href={`/business/${professional.businessSlug}`} data-testid={`link-professional-image-${professional.id}`}><img src={professional.image} alt={`${professional.name}, ${professional.specialty}, in ${professional.city}`} width="720" height="560" loading="lazy" /></Link>
+      <span className="professional-city" data-testid={`text-professional-city-${professional.id}`}><MapPin size={12} />{professional.city}</span>
+      <ProfessionalSaveButton professional={professional} />
+    </div>
+    <div className="professional-card-body">
+      <div className="professional-card-heading">
+        <div><p className="eyebrow">{professional.neighborhood}</p><Link href={`/business/${professional.businessSlug}`} className="professional-name" data-testid={`link-professional-${professional.id}`}>{professional.name}</Link></div>
+        {professional.verified && <span className="professional-verified" title="Verified on Certxa" data-testid={`status-professional-verified-${professional.id}`}><BadgeCheck size={16} /></span>}
+      </div>
+      <p className="professional-specialty" data-testid={`text-professional-specialty-${professional.id}`}>{professional.specialty}</p>
+      <ProfessionalRating professional={professional} />
+      <p className="professional-bio">{professional.bio}</p>
+      <div className="professional-card-foot"><span className="professional-setup"><Briefcase size={13} /> {professional.setup}</span><span>{professional.price}</span></div>
+      <div className="professional-services">{professional.services.slice(0, 2).map(service => <span key={service}>{service}</span>)}</div>
+      <Link href={`/business/${professional.businessSlug}`} className="professional-business-link" data-testid={`link-professional-business-${professional.id}`}>Works from {professional.businessName} <ArrowRight size={14} /></Link>
+    </div>
+  </article>;
+}
+
+function ProfessionalsPage() {
+  const [location, setLocation] = useLocation();
+  const initialParams = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), []);
+  const [search, setSearch] = useState(initialParams.get('q') || '');
+  const [city, setCity] = useState(initialParams.get('city') || '');
+  const [specialty, setSpecialty] = useState(initialParams.get('specialty') || '');
+  const [setup, setSetup] = useState(initialParams.get('setup') || '');
+  const [minimumRating, setMinimumRating] = useState(initialParams.get('rating') || '');
+  const [sort, setSort] = useState('recommended');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    setSearch(params.get('q') || '');
+    setCity(params.get('city') || '');
+    setSpecialty(params.get('specialty') || '');
+    setSetup(params.get('setup') || '');
+    setMinimumRating(params.get('rating') || '');
+  }, [location]);
+
+  const specialties = useMemo(() => [...new Set(professionals.map(professional => professional.specialty))].sort(), []);
+  const filteredProfessionals = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+    const minimum = minimumRating ? Number(minimumRating) : 0;
+    const results = professionals.filter(professional => {
+      const searchable = [professional.name, professional.specialty, professional.city, professional.neighborhood, professional.businessName, professional.bio, ...professional.services].join(' ').toLowerCase();
+      return (!normalizedSearch || searchable.includes(normalizedSearch))
+        && (!city || professional.city === city)
+        && (!specialty || professional.specialty === specialty)
+        && (!setup || professional.setup === setup)
+        && professional.rating >= minimum;
+    });
+    return [...results].sort((a, b) => sort === 'rating' ? b.rating - a.rating : sort === 'reviews' ? b.reviewCount - a.reviewCount : sort === 'name' ? a.name.localeCompare(b.name) : Number(b.verified) - Number(a.verified) || b.rating - a.rating);
+  }, [city, minimumRating, search, setup, sort, specialty]);
+
+  const updateParam = (key: string, value: string) => {
+    const params = new URLSearchParams();
+    if (search.trim()) params.set('q', search.trim());
+    if (city) params.set('city', city);
+    if (specialty) params.set('specialty', specialty);
+    if (setup) params.set('setup', setup);
+    if (minimumRating) params.set('rating', minimumRating);
+    if (value) params.set(key, value); else params.delete(key);
+    setLocation(`/professionals${params.toString() ? `?${params.toString()}` : ''}`);
+  };
+  const clearFilters = () => {
+    setSearch(''); setCity(''); setSpecialty(''); setSetup(''); setMinimumRating(''); setSort('recommended');
+    setLocation('/professionals');
+  };
+  const activeCount = [city, specialty, setup, minimumRating].filter(Boolean).length;
+  const schema = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Certxa Professionals',
+    description: 'Discover independent beauty, wellness, and fitness professionals in Denver, Austin, and Portland.',
+    url: `${siteUrl}/professionals`,
+    mainEntity: { '@type': 'ItemList', numberOfItems: professionals.length, itemListElement: professionals.map((professional, index) => ({ '@type': 'ListItem', position: index + 1, name: professional.name, url: `${siteUrl}/business/${professional.businessSlug}` })) },
+  }), []);
+
+  return <Shell><Seo title="Find independent professionals — Certxa" description="Meet independent beauty, wellness, and fitness professionals in Denver, Austin, and Portland. Search by specialty, setup, rating, and city on Certxa." path="/professionals" jsonLd={schema} />
+    <main className="professionals-page">
+      <section className="professionals-hero">
+        <div className="professionals-hero-copy">
+          <p className="kicker"><span className="kicker-line" />The people behind the places</p>
+          <h1>Meet your next<br /><em>favorite practitioner.</em></h1>
+          <p>Find the solo artists, booth renters, and independent pros who make local beauty, wellness, and movement feel personal.</p>
+        </div>
+        <div className="professionals-hero-note"><span className="hero-note-number">08</span><span>people to know<br /><em>and book again</em></span></div>
+      </section>
+      <section className="professionals-controls" aria-label="Search professionals">
+        <div className="professionals-search-wrap"><Search size={18} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search a name, service, or neighborhood" aria-label="Search professionals" data-testid="input-professionals-search" /><button type="button" onClick={() => setSearch('')} aria-label="Clear professional search" data-testid="button-clear-professional-search"><X size={15} /></button></div>
+        <label className="professional-select"><span>City</span><select value={city} onChange={event => { setCity(event.target.value); updateParam('city', event.target.value); }} aria-label="Filter professionals by city" data-testid="select-professionals-city"><option value="">All cities</option>{cities.map(item => <option key={item.slug} value={item.name}>{item.name}</option>)}</select><ChevronDown size={14} /></label>
+        <label className="professional-select"><span>Specialty</span><select value={specialty} onChange={event => { setSpecialty(event.target.value); updateParam('specialty', event.target.value); }} aria-label="Filter professionals by specialty" data-testid="select-professionals-specialty"><option value="">All specialties</option>{specialties.map(item => <option key={item} value={item}>{item}</option>)}</select><ChevronDown size={14} /></label>
+        <button className={`professionals-filter-toggle ${filtersOpen ? 'active' : ''}`} type="button" onClick={() => setFiltersOpen(value => !value)} aria-expanded={filtersOpen} data-testid="button-toggle-professional-filters"><SlidersHorizontal size={16} /> Filters {activeCount > 0 && <span>{activeCount}</span>}</button>
+      </section>
+      {filtersOpen && <div className="professional-filter-drawer" data-testid="panel-professional-filters">
+        <div><span className="professional-filter-label">Work setup</span><div className="professional-filter-options">{['Independent studio', 'Booth renter', 'Suite inside salon'].map(option => <button key={option} className={setup === option ? 'selected' : ''} type="button" onClick={() => { const next = setup === option ? '' : option; setSetup(next); updateParam('setup', next); }} data-testid={`button-professional-setup-${option.toLowerCase().replaceAll(' ', '-')}`}>{option}</button>)}</div></div>
+        <div><span className="professional-filter-label">Rating</span><div className="professional-filter-options">{[['', 'Any rating'], ['4.5', '4.5 and up'], ['4.8', '4.8 and up']].map(([value, label]) => <button key={value || 'any'} className={minimumRating === value ? 'selected' : ''} type="button" onClick={() => { setMinimumRating(value); updateParam('rating', value); }} data-testid={`button-professional-rating-${value || 'any'}`}>{label}</button>)}</div></div>
+        {activeCount > 0 && <button className="professional-clear-filters" type="button" onClick={clearFilters} data-testid="button-clear-professional-filters">Clear all filters</button>}
+      </div>}
+      <div className="professionals-content">
+        <div className="professionals-toolbar"><div><p className="eyebrow">A considered shortlist</p><h2 data-testid="text-professional-results-count">{filteredProfessionals.length} {filteredProfessionals.length === 1 ? 'professional' : 'professionals'} to know</h2></div><label className="professional-sort"><span>Sort by</span><select value={sort} onChange={event => setSort(event.target.value)} aria-label="Sort professionals" data-testid="select-professionals-sort"><option value="recommended">Recommended</option><option value="rating">Highest rated</option><option value="reviews">Most reviewed</option><option value="name">Name A–Z</option></select><ChevronDown size={13} /></label></div>
+        {filteredProfessionals.length ? <div className="professionals-grid">{filteredProfessionals.map(professional => <ProfessionalCard key={professional.id} professional={professional} />)}</div> : <div className="professionals-empty" data-testid="empty-professionals"><div className="empty-icon"><Search size={22} /></div><p className="eyebrow">A quieter search</p><h2>No one here yet.</h2><p>Try a different city, specialty, or a broader search. The right person may be one filter away.</p><button className="button button-outline" type="button" onClick={clearFilters} data-testid="button-empty-professionals-clear">Clear filters <ArrowRight size={15} /></button></div>}
+      </div>
+      <section className="professionals-note"><div className="professionals-note-mark"><Briefcase size={18} /><span>Independent by design</span></div><p>Some work from a private studio. Some rent a chair inside a place you already love. Certxa makes room for both — because the person you book matters as much as the place.</p><Link href="/search" className="text-link" data-testid="link-professionals-explore-places">Explore places <ArrowRight size={15} /></Link></section>
+    </main>
+  </Shell>;
+}
+
 function CategoryPage() {
   const { category = '' } = useParams<{ category: string }>();
   const meta = categoryMeta[category];
@@ -270,7 +396,7 @@ function NotFound() {
 
 function Router() {
   const [location] = useLocation();
-  return <ErrorBoundary resetKey={location}><Switch><Route path="/" component={Home} /><Route path="/search" component={SearchPage} /><Route path="/category/:category" component={CategoryPage} /><Route path="/city/:city" component={CityPage} /><Route path="/business/:slug" component={BusinessPage} /><Route component={NotFound} /></Switch></ErrorBoundary>;
+  return <ErrorBoundary resetKey={location}><Switch><Route path="/" component={Home} /><Route path="/search" component={SearchPage} /><Route path="/professionals" component={ProfessionalsPage} /><Route path="/category/:category" component={CategoryPage} /><Route path="/city/:city" component={CityPage} /><Route path="/business/:slug" component={BusinessPage} /><Route component={NotFound} /></Switch></ErrorBoundary>;
 }
 
 function App() {
